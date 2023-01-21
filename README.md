@@ -1,0 +1,47 @@
+# pipe-insulationimport vtk
+
+# Create a cylinder as the base pipe
+cylinder = vtk.vtkCylinderSource()
+cylinder.SetResolution(8)
+
+# Apply a texture to the cylinder to represent the sheet metal
+texture = vtk.vtkTexture()
+texture.SetInputConnection(cylinder.GetOutputPort())
+
+# Create a sphere to represent the insulation
+sphere = vtk.vtkSphereSource()
+sphere.SetThetaResolution(8)
+sphere.SetPhiResolution(8)
+
+# Scale the sphere to fit around the cylinder
+transform = vtk.vtkTransform()
+transform.Scale(1.1, 1.1, 1.1)
+
+transformer = vtk.vtkTransformPolyDataFilter()
+transformer.SetInputConnection(sphere.GetOutputPort())
+transformer.SetTransform(transform)
+
+# Add the cylinder and sphere together to create the final 3D model
+appendFilter = vtk.vtkAppendPolyData()
+appendFilter.AddInputConnection(cylinder.GetOutputPort())
+appendFilter.AddInputConnection(transformer.GetOutputPort())
+
+# Visualize the 3D model
+mapper = vtk.vtkPolyDataMapper()
+mapper.SetInputConnection(appendFilter.GetOutputPort())
+
+actor = vtk.vtkActor()
+actor.SetMapper(mapper)
+actor.SetTexture(texture)
+
+renderer = vtk.vtkRenderer()
+renderer.AddActor(actor)
+
+render_window = vtk.vtkRenderWindow()
+render_window.AddRenderer(renderer)
+
+interactor = vtk.vtkRenderWindowInteractor()
+interactor.SetRenderWindow(render_window)
+interactor.Initialize()
+interactor.Start()
+
